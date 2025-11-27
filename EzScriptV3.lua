@@ -1,4 +1,4 @@
-﻿local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua", true))()
 local Window = Library.CreateLib("EZScript", "DarkTheme")
 
 local Player = game.Players.LocalPlayer
@@ -900,4 +900,5 @@ game.Players.PlayerRemoving:Connect(function(leavingPlayer)
 end)
 
 -- INITIAL NOTIFICATION
+
 Library:CreateNotification("EZScript", "Script loaded successfully! All functions available.", 5)
