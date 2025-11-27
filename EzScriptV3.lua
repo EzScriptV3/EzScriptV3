@@ -1,4 +1,7 @@
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua", true))()
+local kavo_source = game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua")
+getgenv().KavoLib = loadstring(kavo_source)()
+
+local Library = getgenv().KavoLib
 local Window = Library.CreateLib("EZScript", "DarkTheme")
 
 local Player = game.Players.LocalPlayer
@@ -902,3 +905,4 @@ end)
 -- INITIAL NOTIFICATION
 
 Library:CreateNotification("EZScript", "Script loaded successfully! All functions available.", 5)
+
