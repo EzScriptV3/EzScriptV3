@@ -712,7 +712,89 @@ spawn(function()
     end
 end)
 
--- TAB 5: ADDITIONAL FUNCTIONS
+-- TAB 5: GAMES (объединенная вкладка)
+local GamesTab = Window:NewTab("Games")
+local GamesSection1 = GamesTab:NewSection("BaBfT Features")
+
+-- Функции для BaBfT
+GamesSection1:NewButton("Activate AutoFarm 1", "Start Floating Animation", function()
+    startFloating()
+    Library:CreateNotification("AutoFarm", "Floating animation STARTED!", 3)
+end)
+
+GamesSection1:NewButton("Activate AutoFarm 2", "Stop Floating Animation", function()
+    stopFloating()
+    Library:CreateNotification("AutoFarm", "Floating animation STOPPED!", 3)
+end)
+
+GamesSection1:NewToggle("Active AntiAfk", "Enable Anti-AFK protection", function(state)
+    ToggleAntiAFK()
+end)
+
+local GamesSection2 = GamesTab:NewSection("OBBY Features")
+
+-- Функции для OBBY
+GamesSection2:NewButton("Infinite Jump", "Toggle Infinite Jump", function()
+    ToggleInfJump()
+end)
+
+GamesSection2:NewButton("Anti-AFK", "Toggle Anti-AFK", function()
+    ToggleAntiAFK()
+end)
+
+local GamesSection3 = GamesTab:NewSection("HAS Features")
+
+-- Функции для HAS
+GamesSection3:NewButton("ESP", "Toggle ESP", function()
+    ToggleESP()
+end)
+
+GamesSection3:NewButton("Anti-AFK", "Toggle Anti-AFK", function()
+    ToggleAntiAFK()
+end)
+
+local GamesSection4 = GamesTab:NewSection("99NIGHTS Features")
+
+-- Функции для 99NIGHTS
+GamesSection4:NewButton("Night Mode", "Toggle Night Vision Mode", function()
+    ToggleNightMode()
+end)
+
+GamesSection4:NewButton("Speed Boost", "Toggle Super Speed (100)", function()
+    ToggleSpeedBoost()
+end)
+
+GamesSection4:NewButton("God Mode", "Toggle Invincibility", function()
+    ToggleGodMode()
+end)
+
+local GamesSection5 = GamesTab:NewSection("99NIGHTS Special Abilities")
+
+GamesSection5:NewButton("Super Jump", "Activate Super Jump (10 sec)", function()
+    ActivateSuperJump()
+end)
+
+GamesSection5:NewButton("Sky Teleport", "Teleport to Sky", function()
+    TeleportToSky()
+end)
+
+GamesSection5:NewToggle("Infinite Jump", "Toggle Infinite Jump", function(state)
+    ToggleInfJump()
+end)
+
+local GamesSection6 = GamesTab:NewSection("99NIGHTS Settings")
+
+GamesSection6:NewSlider("Jump Power", "Set Jump Power", 50, 500, function(value)
+    Humanoid.JumpPower = value
+    Library:CreateNotification("99NIGHTS", "Jump Power set to: " .. value, 2)
+end)
+
+GamesSection6:NewSlider("Walk Speed", "Set Walk Speed", 16, 200, function(value)
+    Humanoid.WalkSpeed = value
+    Library:CreateNotification("99NIGHTS", "Walk Speed set to: " .. value, 2)
+end)
+
+-- ВКЛАДКА: Extra (заменяет старую вкладку Extra)
 local ExtraTab = Window:NewTab("Extra")
 local ExtraSection = ExtraTab:NewSection("Additional Functions")
 
@@ -734,90 +816,7 @@ ExtraSection:NewButton("Reset All Settings", "Reset everything", function()
     ResetAll()
 end)
 
--- ВКЛАДКА: BaBfT
-local BaBfTTab = Window:NewTab("BaBfT")
-local BaBfTSection1 = BaBfTTab:NewSection("BaBfT Features")
-
--- Добавляем функции для BaBfT вкладки
-BaBfTSection1:NewButton("Activate AutoFarm 1", "Start Floating Animation", function()
-    startFloating()
-    Library:CreateNotification("AutoFarm", "Floating animation STARTED!", 3)
-end)
-
-BaBfTSection1:NewButton("Activate AutoFarm 2", "Stop Floating Animation", function()
-    stopFloating()
-    Library:CreateNotification("AutoFarm", "Floating animation STOPPED!", 3)
-end)
-
-BaBfTSection1:NewToggle("Active AntiAfk", "Enable Anti-AFK protection", function(state)
-    ToggleAntiAFK()
-end)
-
--- ВКЛАДКА: OBBY & HAS
-local ObbyHasTab = Window:NewTab("OBBY & HAS")
-local ObbySection = ObbyHasTab:NewSection("OBBY Features")
-
-ObbySection:NewButton("Infinite Jump", "Toggle Infinite Jump", function()
-    ToggleInfJump()
-end)
-
-ObbySection:NewButton("Anti-AFK", "Toggle Anti-AFK", function()
-    ToggleAntiAFK()
-end)
-
-local HasSection = ObbyHasTab:NewSection("HAS Features")
-
-HasSection:NewButton("ESP", "Toggle ESP", function()
-    ToggleESP()
-end)
-
-HasSection:NewButton("Anti-AFK", "Toggle Anti-AFK", function()
-    ToggleAntiAFK()
-end)
-
--- ВКЛАДКА: 99NIGHTS
-local NightsTab = Window:NewTab("99NIGHTS")
-local NightsSection1 = NightsTab:NewSection("Night Features")
-
-NightsSection1:NewButton("Night Mode", "Toggle Night Vision Mode", function()
-    ToggleNightMode()
-end)
-
-NightsSection1:NewButton("Speed Boost", "Toggle Super Speed (100)", function()
-    ToggleSpeedBoost()
-end)
-
-NightsSection1:NewButton("God Mode", "Toggle Invincibility", function()
-    ToggleGodMode()
-end)
-
-local NightsSection2 = NightsTab:NewSection("Special Abilities")
-
-NightsSection2:NewButton("Super Jump", "Activate Super Jump (10 sec)", function()
-    ActivateSuperJump()
-end)
-
-NightsSection2:NewButton("Sky Teleport", "Teleport to Sky", function()
-    TeleportToSky()
-end)
-
-NightsSection2:NewToggle("Infinite Jump", "Toggle Infinite Jump", function(state)
-    ToggleInfJump()
-end)
-
-local NightsSection3 = NightsTab:NewSection("Night Settings")
-
-NightsSection3:NewSlider("Jump Power", "Set Jump Power", 50, 500, function(value)
-    Humanoid.JumpPower = value
-    Library:CreateNotification("99NIGHTS", "Jump Power set to: " .. value, 2)
-end)
-
-NightsSection3:NewSlider("Walk Speed", "Set Walk Speed", 16, 200, function(value)
-    Humanoid.WalkSpeed = value
-    Library:CreateNotification("99NIGHTS", "Walk Speed set to: " .. value, 2)
-end)
-
--- НОВАЯ ВКЛАДКА: MOBILE SUPPORT (после 99NIGHTS)
+-- ВКЛАДКА: MOBILE SUPPORT
 local MobileTab = Window:NewTab("Mobile Support")
 local MobileSection1 = MobileTab:NewSection("Flight & Movement")
 
@@ -903,6 +902,4 @@ game.Players.PlayerRemoving:Connect(function(leavingPlayer)
 end)
 
 -- INITIAL NOTIFICATION
-
 Library:CreateNotification("EZScript", "Script loaded successfully! All functions available.", 5)
-
