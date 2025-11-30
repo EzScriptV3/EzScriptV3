@@ -20,6 +20,7 @@ local InfJumpEnabled = false
 local BrightnessEnabled = false
 local AutoClickerEnabled = false
 local ClickSpeed = 10 -- кликов в секунду
+local MM2ESPEnabled = false -- Новая переменная для MM2 ESP
 
 -- BaBfT Floating Variables
 local ts = game:GetService("TweenService")
@@ -36,6 +37,9 @@ local NightModeEnabled = false
 local SpeedBoostEnabled = false
 local GodModeEnabled = false
 
+-- MM2 ESP Variables
+local MM2HighlightInstances = {}
+
 local FlyConnection
 local NoclipConnection
 local AFKConnection
@@ -47,6 +51,177 @@ local AutoClickerConnection
 -- Server Info Variables
 local RunService = game:GetService("RunService")
 local StatsService = game:GetService("Stats")
+
+-- MM2 ESP FUNCTIONS
+local function GetPlayerRole(player)
+    if not player or not player.Character then return "Innocent" end
+    
+    local success, result = pcall(function()
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        
+        -- Проверка через ReplicatedStorage
+        if ReplicatedStorage:FindFirstChild("GetPlayerData") then
+            local data = ReplicatedStorage.GetPlayerData:InvokeServer(player)
+            if data and data.Role then
+                return data.Role
+            end
+        end
+        
+        -- Проверка через Backpack и инструменты
+        local backpack = player:FindFirstChild("Backpack")
+        local character = player.Character
+        
+        if backpack then
+            for _, item in pairs(backpack:GetChildren()) do
+                if item.Name:lower() == "gun" then
+                    return "Sheriff"
+                elseif item.Name:lower() == "knife" then
+                    return "Murderer"
+                end
+            end
+        end
+        
+        if character then
+            for _, item in pairs(character:GetChildren()) do
+                if item:IsA("Tool") then
+                    if item.Name:lower() == "gun" then
+                        return "Sheriff"
+                    elseif item.Name:lower() == "knife" then
+                        return "Murderer"
+                    end
+                end
+            end
+        end
+        
+        return "Innocent"
+    end)
+    
+    if success then
+        return result or "Innocent"
+    else
+        return "Innocent"
+    end
+end
+
+local function CreateMM2Highlight(player)
+    if not player or player == Player then return end
+    
+    if MM2HighlightInstances[player] then
+        MM2HighlightInstances[player]:Destroy()
+    end
+    
+    local role = GetPlayerRole(player)
+    local color = Color3.fromRGB(128, 128, 128) -- По умолчанию серый
+    
+    if role == "Murderer" then
+        color = Color3.fromRGB(255, 0, 0) -- Красный для убийцы
+    elseif role == "Sheriff" then
+        color = Color3.fromRGB(0, 0, 255) -- Синий для шерифа
+    end
+    
+    local highlight = Instance.new("Highlight")
+    highlight.Name = player.Name .. "_MM2_Highlight"
+    highlight.Adornee = player.Character
+    highlight.FillColor = color
+    highlight.OutlineColor = color
+    highlight.FillTransparency = 0.5
+    highlight.OutlineTransparency = 0
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    
+    local CoreGui = game:GetService("CoreGui")
+    if gethui then
+        highlight.Parent = gethui()
+    elseif syn and syn.protect_gui then
+        syn.protect_gui(highlight)
+        highlight.Parent = CoreGui
+    else
+        highlight.Parent = CoreGui
+    end
+    
+    MM2HighlightInstances[player] = highlight
+end
+
+local function UpdateMM2Highlights()
+    for player, highlight in pairs(MM2HighlightInstances) do
+        if player and player.Character and highlight then
+            local role = GetPlayerRole(player)
+            local color = Color3.fromRGB(128, 128, 128)
+            
+            if role == "Murderer" then
+                color = Color3.fromRGB(255, 0, 0)
+            elseif role == "Sheriff" then
+                color = Color3.fromRGB(0, 0, 255)
+            end
+            
+            highlight.FillColor = color
+            highlight.OutlineColor = color
+        else
+            if MM2HighlightInstances[player] then
+                MM2HighlightInstances[player]:Destroy()
+                MM2HighlightInstances[player] = nil
+            end
+        end
+    end
+end
+
+local function RemoveMM2Highlight(player)
+    if MM2HighlightInstances[player] then
+        MM2HighlightInstances[player]:Destroy()
+        MM2HighlightInstances[player] = nil
+    end
+end
+
+local function ClearAllMM2Highlights()
+    for player, highlight in pairs(MM2HighlightInstances) do
+        if highlight then
+            highlight:Destroy()
+        end
+    end
+    MM2HighlightInstances = {}
+end
+
+local function ToggleMM2ESP()
+    MM2ESPEnabled = not MM2ESPEnabled
+    
+    if MM2ESPEnabled then
+        Library:CreateNotification("MM2 ESP", "MM2 ESP ENABLED!", 3)
+        
+        -- Создаем подсветки для всех игроков
+        for _, targetPlayer in pairs(game.Players:GetPlayers()) do
+            if targetPlayer ~= Player and targetPlayer.Character then
+                CreateMM2Highlight(targetPlayer)
+            end
+        end
+        
+        -- Запускаем цикл обновления
+        coroutine.wrap(function()
+            while MM2ESPEnabled do
+                UpdateMM2Highlights()
+                wait(1)
+            end
+        end)()
+        
+        -- Обработчики событий
+        game.Players.PlayerAdded:Connect(function(newPlayer)
+            if MM2ESPEnabled then
+                newPlayer.CharacterAdded:Connect(function()
+                    wait(1)
+                    CreateMM2Highlight(newPlayer)
+                end)
+            end
+        end)
+        
+        game.Players.PlayerRemoving:Connect(function(leavingPlayer)
+            if MM2ESPEnabled then
+                RemoveMM2Highlight(leavingPlayer)
+            end
+        end)
+        
+    else
+        ClearAllMM2Highlights()
+        Library:CreateNotification("MM2 ESP", "MM2 ESP DISABLED!", 3)
+    end
+end
 
 -- AUTOCLICKER FUNCTION
 local function ToggleAutoClicker()
@@ -527,6 +702,10 @@ local function ResetAll()
     end
     ESPBoxes = {}
     
+    -- Reset MM2 ESP
+    MM2ESPEnabled = false
+    ClearAllMM2Highlights()
+    
     Humanoid.JumpPower = 50
     Humanoid.WalkSpeed = 16
     Humanoid.MaxHealth = 100
@@ -712,89 +891,90 @@ spawn(function()
     end
 end)
 
--- TAB 5: GAMES (объединенная вкладка)
+-- TAB 5: GAMES
 local GamesTab = Window:NewTab("Games")
-local GamesSection1 = GamesTab:NewSection("BaBfT Features")
 
--- Функции для BaBfT
-GamesSection1:NewButton("Activate AutoFarm 1", "Start Floating Animation", function()
+-- Секция Murder Mystery 2 в Games
+local MM2Section = GamesTab:NewSection("Murder Mystery 2")
+MM2Section:NewButton("MM2 ESP", "Toggle Murder Mystery 2 ESP", function()
+    ToggleMM2ESP()
+end)
+
+-- Секция BaBfT в Games
+local BaBfTSection = GamesTab:NewSection("BaBfT Features")
+BaBfTSection:NewButton("Activate AutoFarm 1", "Start Floating Animation", function()
     startFloating()
     Library:CreateNotification("AutoFarm", "Floating animation STARTED!", 3)
 end)
 
-GamesSection1:NewButton("Activate AutoFarm 2", "Stop Floating Animation", function()
+BaBfTSection:NewButton("Activate AutoFarm 2", "Stop Floating Animation", function()
     stopFloating()
     Library:CreateNotification("AutoFarm", "Floating animation STOPPED!", 3)
 end)
 
-GamesSection1:NewToggle("Active AntiAfk", "Enable Anti-AFK protection", function(state)
+BaBfTSection:NewToggle("Active AntiAfk", "Enable Anti-AFK protection", function(state)
     ToggleAntiAFK()
 end)
 
-local GamesSection2 = GamesTab:NewSection("OBBY Features")
-
--- Функции для OBBY
-GamesSection2:NewButton("Infinite Jump", "Toggle Infinite Jump", function()
+-- Секция OBBY в Games
+local ObbySection = GamesTab:NewSection("OBBY Features")
+ObbySection:NewButton("Infinite Jump", "Toggle Infinite Jump", function()
     ToggleInfJump()
 end)
 
-GamesSection2:NewButton("Anti-AFK", "Toggle Anti-AFK", function()
+ObbySection:NewButton("Anti-AFK", "Toggle Anti-AFK", function()
     ToggleAntiAFK()
 end)
 
-local GamesSection3 = GamesTab:NewSection("HAS Features")
-
--- Функции для HAS
-GamesSection3:NewButton("ESP", "Toggle ESP", function()
+-- Секция HAS в Games
+local HasSection = GamesTab:NewSection("HAS Features")
+HasSection:NewButton("ESP", "Toggle ESP", function()
     ToggleESP()
 end)
 
-GamesSection3:NewButton("Anti-AFK", "Toggle Anti-AFK", function()
+HasSection:NewButton("Anti-AFK", "Toggle Anti-AFK", function()
     ToggleAntiAFK()
 end)
 
-local GamesSection4 = GamesTab:NewSection("99NIGHTS Features")
-
--- Функции для 99NIGHTS
-GamesSection4:NewButton("Night Mode", "Toggle Night Vision Mode", function()
+-- Секция 99NIGHTS в Games
+local NightsSection1 = GamesTab:NewSection("99NIGHTS - Night Features")
+NightsSection1:NewButton("Night Mode", "Toggle Night Vision Mode", function()
     ToggleNightMode()
 end)
 
-GamesSection4:NewButton("Speed Boost", "Toggle Super Speed (100)", function()
+NightsSection1:NewButton("Speed Boost", "Toggle Super Speed (100)", function()
     ToggleSpeedBoost()
 end)
 
-GamesSection4:NewButton("God Mode", "Toggle Invincibility", function()
+NightsSection1:NewButton("God Mode", "Toggle Invincibility", function()
     ToggleGodMode()
 end)
 
-local GamesSection5 = GamesTab:NewSection("99NIGHTS Special Abilities")
-
-GamesSection5:NewButton("Super Jump", "Activate Super Jump (10 sec)", function()
+local NightsSection2 = GamesTab:NewSection("99NIGHTS - Special Abilities")
+NightsSection2:NewButton("Super Jump", "Activate Super Jump (10 sec)", function()
     ActivateSuperJump()
 end)
 
-GamesSection5:NewButton("Sky Teleport", "Teleport to Sky", function()
+NightsSection2:NewButton("Sky Teleport", "Teleport to Sky", function()
     TeleportToSky()
 end)
 
-GamesSection5:NewToggle("Infinite Jump", "Toggle Infinite Jump", function(state)
+NightsSection2:NewToggle("Infinite Jump", "Toggle Infinite Jump", function(state)
     ToggleInfJump()
 end)
 
-local GamesSection6 = GamesTab:NewSection("99NIGHTS Settings")
-
-GamesSection6:NewSlider("Jump Power", "Set Jump Power", 50, 500, function(value)
+local NightsSection3 = GamesTab:NewSection("99NIGHTS - Settings")
+NightsSection3:NewSlider("Jump Power", "Set Jump Power", 50, 500, function(value)
     Humanoid.JumpPower = value
     Library:CreateNotification("99NIGHTS", "Jump Power set to: " .. value, 2)
 end)
 
-GamesSection6:NewSlider("Walk Speed", "Set Walk Speed", 16, 200, function(value)
+NightsSection3:NewSlider("Walk Speed", "Set Walk Speed", 16, 200, function(value)
     Humanoid.WalkSpeed = value
     Library:CreateNotification("99NIGHTS", "Walk Speed set to: " .. value, 2)
 end)
 
--- ВКЛАДКА: Extra (заменяет старую вкладку Extra)
+-- TAB 6: ADDITIONAL FUNCTIONS
 local ExtraTab = Window:NewTab("Extra")
 local ExtraSection = ExtraTab:NewSection("Additional Functions")
 
@@ -816,7 +996,7 @@ ExtraSection:NewButton("Reset All Settings", "Reset everything", function()
     ResetAll()
 end)
 
--- ВКЛАДКА: MOBILE SUPPORT
+-- НОВАЯ ВКЛАДКА: MOBILE SUPPORT
 local MobileTab = Window:NewTab("Mobile Support")
 local MobileSection1 = MobileTab:NewSection("Flight & Movement")
 
@@ -903,3 +1083,4 @@ end)
 
 -- INITIAL NOTIFICATION
 Library:CreateNotification("EZScript", "Script loaded successfully! All functions available.", 5)
+
