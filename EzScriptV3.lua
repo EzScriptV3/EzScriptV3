@@ -545,6 +545,49 @@ local function TeleportToRandomPlayer()
     end
 end
 
+-- NEW FUNCTION: BRING RANDOM PLAYER
+local function BringRandomPlayer()
+    local players = game.Players:GetPlayers()
+    local validPlayers = {}
+    
+    for _, player in pairs(players) do
+        if player ~= Player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            table.insert(validPlayers, player)
+        end
+    end
+    
+    if #validPlayers > 0 then
+        local randomPlayer = validPlayers[math.random(1, #validPlayers)]
+        local targetChar = randomPlayer.Character
+        if targetChar and targetChar:FindFirstChild("HumanoidRootPart") then
+            targetChar.HumanoidRootPart.CFrame = Character.HumanoidRootPart.CFrame
+            Library:CreateNotification("Teleport", "Brought " .. randomPlayer.Name .. " to you!", 3)
+        end
+    else
+        Library:CreateNotification("Teleport", "No valid players found!", 3)
+    end
+end
+
+-- NEW FUNCTION: BRING ALL PLAYERS
+local function BringAllPlayers()
+    local players = game.Players:GetPlayers()
+    local successCount = 0
+    
+    for _, player in pairs(players) do
+        if player ~= Player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local targetChar = player.Character
+            targetChar.HumanoidRootPart.CFrame = Character.HumanoidRootPart.CFrame
+            successCount = successCount + 1
+        end
+    end
+    
+    if successCount > 0 then
+        Library:CreateNotification("Teleport", "Brought " .. successCount .. " players to you!", 3)
+    else
+        Library:CreateNotification("Teleport", "No valid players found!", 3)
+    end
+end
+
 -- INVISIBILITY FUNCTION
 local function ToggleInvisibility()
     Invisible = not Invisible
@@ -826,6 +869,14 @@ TeleportSection:NewKeybind("TP Random Player", "Press Z to teleport to random pl
     TeleportToRandomPlayer()
 end)
 
+TeleportSection:NewButton("Bring Random Player", "Bring a random player to you", function()
+    BringRandomPlayer()
+end)
+
+TeleportSection:NewButton("Bring All Players", "Bring all players to you", function()
+    BringAllPlayers()
+end)
+
 -- TAB 3: VISUALS
 local VisualsTab = Window:NewTab("Visuals")
 local VisualsSection = VisualsTab:NewSection("Visual Features")
@@ -1024,6 +1075,14 @@ end)
 
 MobileSection2:NewButton("TP Random Player", "Teleport to Random Player", function()
     TeleportToRandomPlayer()
+end)
+
+MobileSection2:NewButton("Bring Random Player", "Bring Random Player to you", function()
+    BringRandomPlayer()
+end)
+
+MobileSection2:NewButton("Bring All Players", "Bring All Players to you", function()
+    BringAllPlayers()
 end)
 
 MobileSection2:NewButton("ESP", "Toggle ESP", function()
